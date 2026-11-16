@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Platform {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  attachments String?
+  status      String   @default("DISCOVERY")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  status      String   @default("PENDING")
+  agent       String?  // <-- NOUVEAU : Quel agent est responsable
+  platformId  String
+  platform    Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}

@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // FARM, FISHERY, LIVESTOCK, COOP
+  createdAt DateTime @default(now())
+  assets    Asset[]
+  users     User[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  role           String
+}
+
+model Asset {
+  id             String       @id @default(uuid())
+  type           String       // MACHINERY, SENSOR, LIVESTOCK_GROUP, POND
+  model          String?
+  status         String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  telemetries    Telemetry[]
+  tasks          Task[]
+}
+
+model Telemetry {
+  id        String   @id @default(uuid())
+  assetId   String
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  metric    String
+  value     Float
+  timestamp DateTime @default(now())
+  metadata  Json?
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  assetId     String
+  asset       Asset    @relation(fields: [assetId], references: [id])
+  type        String   // IRRIGATION, HARVEST, FEEDING, MAINTENANCE
+  scheduledAt DateTime
+  completedAt DateTime?
+  status      String
+  payload     Json
+}
+
+model GeoFence {
+  id             String @id @default(uuid())
+  organizationId String
+  coordinates    Json
+  type           String // FIELD, POND, PASTURE
+}
+
+model AIModelConfig {
+  id          String   @id @default(uuid())
+  modelName   String
+  version     String
+  parameters  Json
+  isActive    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
